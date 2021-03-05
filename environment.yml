@@ -8,4 +8,5 @@ dependencies:
   - jupyterlab
   - pandas
   - pyepics
+  - scikit-image
   
