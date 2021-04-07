@@ -1,5 +1,4 @@
 Variable,bmad_name,device_pv_name,device_min,device_max,scan_min,scan_max,default_value,pv_unit,impact_name,impact_factor,impact_description,impact_unit,impact_default
-Iris diameter ENUM,,IRIS:LR20:130:CONFG_SEL,0.3,1.8,0.8,1.2,,mm,distgen:r_dist:sigma_xy:value,0.3333333,Gaussian is cut off at 1.5 sigma_xu,mm,0.4
 Solenoid,SOL1,SOLN:IN20:121:BDES,0,0.55,0.35,0.5,,kG*m,SOL1:solenoid_field_scale,0.51427242,peak field,T,
 Corrector quad,CQ01,QUAD:IN20:121:BDES,-0.015,0.015,-0.015,0.015,,kG,CQ01:b1_gradient,-0.476190476,Corrector quad gradient,T/m,
 Skew quad,SQ01,QUAD:IN20:122:BDES,-0.015,0.015,-0.015,0.015,,kG,SQ01:b1_gradient,-0.476190476,Skew quad gradient,T/m,
@@ -13,4 +12,3 @@ QE01,QE01,QUAD:IN20:425:BDES,-20,20,-4,-1,,kG,QE01:b1_gradient,-0.925925926,10.8
 QE02,QE02,QUAD:IN20:441:BDES,-20,20,-1,2,,kG,QE02:b1_gradient,-0.925925926,10.8 cm quad,T/m,
 QE03,QE03,QUAD:IN20:511:BDES,-20,20,2,7,,kG,QE03:b1_gradient,-0.925925926,10.8 cm quad,T/m,
 QE04,QE04,QUAD:IN20:525:BDES,-20,20,-5,-3,,kG,QE04:b1_gradient,-0.925925926,10.8 cm quad,T/m,
-

@@ -1,0 +1,14 @@
+Variable,bmad_name,device_pv_name,pv_unit,impact_name,impact_factor,impact_description,impact_unit
+Solenoid,SOL10111,SOLN:IN10:121:BDES,kG*m,SOL10111:solenoid_field_scale,0.51427242,peak field,T
+Corrector quad,CQ10121,QUAD:IN10:121:BDES,kG,CQ10121:b1_gradient,-0.476190476,Corrector quad gradient,T/m
+Skew quad,SQ10122,QUAD:IN10:122:BDES,kG,SQ10122:b1_gradient,-0.476190476,Skew quad gradient,T/m
+L0AF phase,L0AF,,deg,L0AF_phase:dtheta0_deg,1,Phase relative to on-crest,deg
+L0BF phase,L0BF,,deg,L0BF_phase:dtheta0_deg,1,Phase relative to on-crest,deg
+L0BF voltage,L0AF,,MV,L0AF_scale:voltage,1000000,Voltage,V
+L0BF voltage,L0BF,,MV,L0BF_scale:voltage,1000000,Voltage,V
+QA10361,QA10361,QUAD:IN10:361:BDES,kG,QA10361:b1_gradient,-0.925925926,10.8 cm quad,T/m
+QA10371,QA10371,QUAD:IN10:371:BDES,kG,QA10371:b1_gradient,-0.925925926,10.8 cm quad,T/m
+QE10425,QE10425,QUAD:IN10:425:BDES,kG,QE10425:b1_gradient,-0.925925926,10.8 cm quad,T/m
+QE10441,QE10441,QUAD:IN10:441:BDES,kG,QE10441:b1_gradient,-0.925925926,10.8 cm quad,T/m
+QE10511,QE10511,QUAD:IN10:511:BDES,kG,QE10511:b1_gradient,-0.925925926,10.8 cm quad,T/m
+QE10525,QE10525,QUAD:IN10:525:BDES,kG,QE10525:b1_gradient,-0.925925926,10.8 cm quad,T/m
