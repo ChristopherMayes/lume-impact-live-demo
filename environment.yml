@@ -1,10 +1,12 @@
-name: lume
+# run: conda env create --file environment.yml
+name: lume-test
 channels:
   - conda-forge
 dependencies:
   - python=3.8
   - ipykernel
   - lume-impact
+  - impact-t=*=mpi_openmpi*
   - jupyterlab
   - pandas
   - pyepics
