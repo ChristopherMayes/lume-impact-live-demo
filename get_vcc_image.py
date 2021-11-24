@@ -46,7 +46,7 @@ LCLS_VCC_PV = {
 #epics.caget_many(LCLS_VCC_PV.values())
 
 
-# In[10]:
+# In[5]:
 
 
 FACET_VCC_PV = {
@@ -145,7 +145,7 @@ y {widths[0]} {widths[0]/2}  [{resolution_units}]"""
     return os.path.abspath(filename)
 
 
-# In[9]:
+# In[15]:
 
 
 def get_live_distgen_xy_dist(filename='test.txt', vcc_device='CAMR:IN20:186'):
@@ -158,19 +158,14 @@ def get_live_distgen_xy_dist(filename='test.txt', vcc_device='CAMR:IN20:186'):
         
     cutimg = isolate_image(image)
     
-    #return image, cutimg
+  #  return image, cutimg
     
     fout = write_distgen_xy_dist(filename, cutimg, dat['resolution'], resolution_units=dat['resolution_units'])
     
     return fout
     
     
+#import matplotlib.pyplot as plt
 #i1, i2 = get_live_distgen_xy_dist(vcc_device='CAMR:IN20:186')
 #plt.imshow(i2)
-
-
-# In[ ]:
-
-
-
 
