@@ -72,10 +72,16 @@ VCC_DEVICE_PV = {
     
 }
 
-def get_vcc_data(vcc_device):
+def get_vcc_data(vcc_device, pvdata=None):
     # Get actual PVs
     d = VCC_DEVICE_PV[vcc_device]
-    data =  dict(zip(d.keys(), epics.caget_many(d.values())))
+    
+    if pvdata:
+        values = [pvdata[k] for k in d.values()]
+    else: 
+        values = epics.caget_many(d.values())
+    
+    data =  dict(zip(d.keys(),values))
     # Make consistent units
     if data['resolution_units'] == 'um/px':
         data['resolution_units'] = 'um'
@@ -88,15 +94,19 @@ def get_vcc_data(vcc_device):
 # In[7]:
 
 
-def isolate_image(img):
+def isolate_image(img, fclip=0.08):
     """
     Uses a masking technique to isolate the VCC image
     """
     img=img.copy()
     
+    # Clip lowest fclip fraction
+    img[img < np.max(img)* fclip] = 0
+    
+    
     # Filter out hot pixels to use aas a mask
     # https://scikit-image.org/docs/0.12.x/auto_examples/xx_applications/plot_rank_filters.html
-    img2 = median(img_as_ubyte(img), disk(1))
+    img2 = median(img_as_ubyte(img), disk(2))
     
     elevation_map = sobel(img2)
     markers = np.zeros_like(img2)
@@ -135,9 +145,12 @@ def write_distgen_xy_dist(filename, image, resolution, resolution_units='m'):
     # Get width of each dimension
     widths = resolution * np.array(image.shape)
     
+    center_y = 0
+    center_x = 0
+    
     # Form header
-    header = f"""x {widths[1]} {widths[1]/2} [{resolution_units}]
-y {widths[0]} {widths[0]/2}  [{resolution_units}]"""
+    header = f"""x {widths[1]} {center_x} [{resolution_units}]
+y {widths[0]} {center_y}  [{resolution_units}]"""
     
     # Save with the correct orientation
     np.savetxt(filename, np.flip(image, axis=0), header=header, comments='')
@@ -145,27 +158,64 @@ y {widths[0]} {widths[0]/2}  [{resolution_units}]"""
     return os.path.abspath(filename)
 
 
-# In[15]:
+# In[20]:
 
 
-def get_live_distgen_xy_dist(filename='test.txt', vcc_device='CAMR:IN20:186'):
+def get_live_distgen_xy_dist(filename='test.txt', vcc_device='CAMR:IN20:186', pvdata=None, fclip=0.08):
     
     # Get data
-    dat = get_vcc_data(vcc_device)
+    dat = get_vcc_data(vcc_device, pvdata)
     
     arr = dat['array']
     image = arr.reshape(dat['size_y'], dat['size_x'])
         
-    cutimg = isolate_image(image)
+    cutimg = isolate_image(image, fclip=fclip)
     
-  #  return image, cutimg
-    
+    assert cutimg.ptp() > 0
+        
     fout = write_distgen_xy_dist(filename, cutimg, dat['resolution'], resolution_units=dat['resolution_units'])
     
-    return fout
+    return fout, image, cutimg
     
-    
-#import matplotlib.pyplot as plt
-#i1, i2 = get_live_distgen_xy_dist(vcc_device='CAMR:IN20:186')
-#plt.imshow(i2)
+   
+# import matplotlib.pyplot as plt
+# %config InlineBackend.figure_format = 'retina'
+# #fout, i1, i2 = get_live_distgen_xy_dist(vcc_device='CAMR:IN20:186')
+# fout, i1, i2 = get_live_distgen_xy_dist(vcc_device='CAMR:LT10:900', fclip=0.08)
+# 
+# plt.imshow(i2)
+# 
+
+
+# In[22]:
+
+
+# gfile = os.path.expandvars('$FACET2_LATTICE/distgen/models/f2e_inj/vcc_image/distgen.yaml')
+# from distgen import Generator
+# 
+# G = Generator(gfile)
+# G['xy_dist:file'] = fout
+# G['n_particle'] = 10000
+# G.run()
+# G.particles.plot('x', 'y', figsize=(5,5))
+
+
+# In[ ]:
+
+
+# PVDATA = dict(zip(FACET_VCC_PV.values(), epics.caget_many(FACET_VCC_PV.values())))
+# PVDATA
+
+
+# In[ ]:
+
+
+# fout, i1, i2 = get_live_distgen_xy_dist(vcc_device='CAMR:LT10:900', pvdata=PVDATA)
+# plt.imshow(i2)
+
+
+# In[ ]:
+
+
+
 

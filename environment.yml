@@ -1,5 +1,5 @@
 # run: conda env create --file environment.yml
-name: lume-test
+name: lume-live
 channels:
   - conda-forge
 dependencies:
