@@ -12,3 +12,4 @@ QE01,QE01,QUAD:IN20:425:BDES,-20,20,-4,-1,,kG,QE01:b1_gradient,-0.925925926,10.8
 QE02,QE02,QUAD:IN20:441:BDES,-20,20,-1,2,,kG,QE02:b1_gradient,-0.925925926,10.8 cm quad,T/m,
 QE03,QE03,QUAD:IN20:511:BDES,-20,20,2,7,,kG,QE03:b1_gradient,-0.925925926,10.8 cm quad,T/m,
 QE04,QE04,QUAD:IN20:525:BDES,-20,20,-5,-3,,kG,QE04:b1_gradient,-0.925925926,10.8 cm quad,T/m,
+bunch charge,CATHODE,BPMS:IN20:221:TMIT,0,2000,0,2000,,n_electrons,distgen:total_charge:value,1.602176634e-07,total charge on cathode, pC
