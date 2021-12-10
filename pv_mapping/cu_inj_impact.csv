@@ -1,15 +1,15 @@
-Variable,bmad_name,device_pv_name,device_min,device_max,scan_min,scan_max,default_value,pv_unit,impact_name,impact_factor,impact_description,impact_unit,impact_default
-Solenoid,SOL1,SOLN:IN20:121:BDES,0,0.55,0.35,0.5,,kG*m,SOL1:solenoid_field_scale,0.51427242,peak field,T,
-Corrector quad,CQ01,QUAD:IN20:121:BDES,-0.015,0.015,-0.015,0.015,,kG,CQ01:b1_gradient,-0.476190476,Corrector quad gradient,T/m,
-Skew quad,SQ01,QUAD:IN20:122:BDES,-0.015,0.015,-0.015,0.015,,kG,SQ01:b1_gradient,-0.476190476,Skew quad gradient,T/m,
-L0A phase,L0A,ACCL:IN20:300:L0A_PDES,-20,0,-20,0,,deg,L0A_phase:dtheta0_deg,1,Phase relative to on-crest,deg,
-L0B phase,L0B,ACCL:IN20:400:L0B_PDES,-20,0,-20,0,,deg,L0B_phase:dtheta0_deg,1,Phase relative to on-crest,deg,
-L0B voltage,L0A,ACCL:IN20:300:L0A_ADES,0,110,50,66,,MV,L0A_scale:voltage,1000000,Voltage,V,
-L0B voltage,L0B,ACCL:IN20:400:L0B_ADES,0,110,70,70,,MV,L0B_scale:voltage,1000000,Voltage,V,
-QA01 ,QA01 ,QUAD:IN20:361:BDES,-20,20,-3.5,-2.75,,kG,QA01:b1_gradient,-0.925925926,10.8 cm quad,T/m,
-QA02,QA02,QUAD:IN20:371:BDES,-20,20,2.5,2.9,,kG,QA02:b1_gradient,-0.925925926,10.8 cm quad,T/m,
-QE01,QE01,QUAD:IN20:425:BDES,-20,20,-4,-1,,kG,QE01:b1_gradient,-0.925925926,10.8 cm quad,T/m,
-QE02,QE02,QUAD:IN20:441:BDES,-20,20,-1,2,,kG,QE02:b1_gradient,-0.925925926,10.8 cm quad,T/m,
-QE03,QE03,QUAD:IN20:511:BDES,-20,20,2,7,,kG,QE03:b1_gradient,-0.925925926,10.8 cm quad,T/m,
-QE04,QE04,QUAD:IN20:525:BDES,-20,20,-5,-3,,kG,QE04:b1_gradient,-0.925925926,10.8 cm quad,T/m,
-bunch charge,CATHODE,BPMS:IN20:221:TMIT,0,2000,0,2000,,n_electrons,distgen:total_charge:value,1.602176634e-07,total charge on cathode, pC
+Variable,bmad_name,device_pv_name,device_min,device_max,scan_min,scan_max,pv_unit,impact_name,impact_factor,impact_description,impact_unit
+Solenoid,SOL1,SOLN:IN20:121:BACT,0,0.55,0.35,0.5,kG*m,SOL1:solenoid_field_scale,0.51427242,peak field,T
+Corrector quad,CQ01,QUAD:IN20:121:BACT,-0.015,0.015,-0.015,0.015,kG,CQ01:b1_gradient,-0.476190476,Corrector quad gradient,T/m
+Skew quad,SQ01,QUAD:IN20:122:BACT,-0.015,0.015,-0.015,0.015,kG,SQ01:b1_gradient,-0.476190476,Skew quad gradient,T/m
+L0A phase,L0A,ACCL:IN20:300:L0A_PDES,-20,0,-20,0,deg,L0A_phase:dtheta0_deg,1,Phase relative to on-crest,deg
+L0B phase,L0B,ACCL:IN20:400:L0B_PDES,-20,0,-20,0,deg,L0B_phase:dtheta0_deg,1,Phase relative to on-crest,deg
+L0B voltage,L0A,ACCL:IN20:300:L0A_ADES,0,110,50,66,MV,L0A_scale:voltage,1000000,Voltage,V
+L0B voltage,L0B,ACCL:IN20:400:L0B_ADES,0,110,70,70,MV,L0B_scale:voltage,1000000,Voltage,V
+QA01 ,QA01 ,QUAD:IN20:361:BACT,-20,20,-3.5,-2.75,kG,QA01:b1_gradient,-0.925925926,10.8 cm quad,T/m
+QA02,QA02,QUAD:IN20:371:BACT,-20,20,2.5,2.9,kG,QA02:b1_gradient,-0.925925926,10.8 cm quad,T/m
+QE01,QE01,QUAD:IN20:425:BACT,-20,20,-4,-1,kG,QE01:b1_gradient,-0.925925926,10.8 cm quad,T/m
+QE02,QE02,QUAD:IN20:441:BACT,-20,20,-1,2,kG,QE02:b1_gradient,-0.925925926,10.8 cm quad,T/m
+QE03,QE03,QUAD:IN20:511:BACT,-20,20,2,7,kG,QE03:b1_gradient,-0.925925926,10.8 cm quad,T/m
+QE04,QE04,QUAD:IN20:525:BACT,-20,20,-5,-3,kG,QE04:b1_gradient,-0.925925926,10.8 cm quad,T/m
+bunch charge,CATHODE,BPMS:IN20:221:TMIT,0,2000,0,2000,n_electrons,distgen:total_charge:value,1.602176634e-07,total charge on cathode, pC
