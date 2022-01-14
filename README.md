@@ -24,9 +24,11 @@ Test with: `caget KLYS:LI22:11:KPHR`
 
 # Run
 
-
-
+For example, LCLS on SDF:
+```
+source example_sdf_lcls.env # source appropriate environment:
 `./run.bash`
+```
 
 ## Environment variables
 
