@@ -27,3 +27,32 @@ Test with: `caget KLYS:LI22:11:KPHR`
 
 
 `./run.bash`
+
+## Environment variables
+
+Running the simulation requires definition of the following variables:
+
+| Variable                  | Description                          |
+|---------------------------|--------------------------------------|
+| IMPACT_HOST               | Host of Impact sim                   |
+| IMPACT_CONFIG_FILE        | Impact configuration file            |
+| IMPACT_DISTGEN_INPUT_FILE | Input to distgen generation          |
+| IMPACT_WORKDIR            | Working directory of simulation run  |
+| IMPACT_SUMMARY_OUTPUT_DIR | Output directory for summary files   |
+| IMPACT_PLOT_OUTPUT_DIR    | Output directory of plot files       |
+| IMPACT_ARCHIVE_DIR        | Output directory for archive files   |
+| IMPACT_SNAPSHOT_DIR       | Output directory for snapshot files  |
+| IMPACT_DISTGEN_LASER_FILE | File for generating distgen input    |
+| IMPACT_NUM_PROCS          | Number of processes to use           |
+| IMPACT_COMMAND            | Command for Impact execution         |
+| IMPACT_MPI_RUN_CMD        | Command for running MPI              |
+
+Running on SDF additionally requires:
+
+| Variable                  | Description                          |
+|---------------------------|--------------------------------------|
+| IMPACT_COMMAND_MPI        | MPI for running impact command
+| IMPACT_COMMAND            | Command for Impact execution         |
+
+
+Default configurations are given in the example environment files packaged with this repository.
