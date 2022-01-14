@@ -5,7 +5,7 @@ Demonstration of LUME-Impact running a live model fetching data from the LCLS EP
 
 # Setup
 
-Make the `lume-test` environment:
+Make the `lume-live` environment:
 `conda env create --file environment.yml`
 
 Convert notebooks to `.py` files:
