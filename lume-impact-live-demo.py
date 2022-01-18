@@ -230,7 +230,7 @@ CONFIG0['impact_config']      =  IMPACT_INPUT_FILE
 CONFIG0['distgen_input_file'] =  DISTGEN_INPUT_FILE
 
 
-if MODEL == 'cu_inj'
+if MODEL == 'cu_inj':
     VCC_DEVICE = 'CAMR:IN20:186' # LCLS   
     
     DASHBOARD_KWARGS = {'outpath':PLOT_OUTPUT_DIR,
