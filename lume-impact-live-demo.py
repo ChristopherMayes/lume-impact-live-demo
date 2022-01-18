@@ -561,7 +561,8 @@ if __name__ == '__main__':
     while True:
         try:
             run1()
-        except:
+        except Exception as e:
+            print(e)
             sleep(10)
             logger.info('Something BAD happened. Sleeping for 10 s ...')
 
