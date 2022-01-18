@@ -208,8 +208,8 @@ if DEBUG:
 elif HOST == 'sdf':
     
      # SDF setup 
-    SETTINGS0['command'] =  IMPACT_CMD
-    SETTINGS0['command_mpi'] =  IMPACT_CMD_MPI
+    SETTINGS0['command'] =  IMPACT_COMMAND
+    SETTINGS0['command_mpi'] =  IMPACT_COMMAND_MPI
     
     
 else:
@@ -226,7 +226,7 @@ else:
 CSV =  f'pv_mapping/{MODEL}_impact.csv'  
 
 
-CONFIG0['impact_config']      =  IMPACT_INPUT_FILE
+CONFIG0['impact_config']      =  IMPACT_CONFIG_FILE
 CONFIG0['distgen_input_file'] =  DISTGEN_INPUT_FILE
 
 
