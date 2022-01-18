@@ -1,0 +1,13 @@
+host=sdf
+config_file=/sdf/group/ard/impact/lcls-lattice/impact/models/cu_inj/v0/ImpactT.yaml
+distgen_input_file=/sdf/group/ard/impact/lcls-lattice/distgen/models/cu_inj/vcc_image/distgen.yaml
+workdir=/sdf/group/ard/impact/output
+summary_output_dir=/sdf/group/ard/impact/output/summary
+plot_output_dir=/sdf/group/ard/impact/output/plot
+archive_dir=/sdf/group/ard/impact/output/archive
+snapshot_dir=/sdf/group/ard/impact/output/snapshot
+distgen_laser_file=/sdf/group/ard/impact/output/distgen_laser.txt
+num_procs=64
+mpi_run_cmd='mpirun -n {n} --use-hwthread-cpus {command_mpi}'
+impact_command=/sdf/home/c/cmayes/impact/bin/ImpactTexe-mpi
+impact_command_mpi='salloc --partition ard -N 1 -n {n} /sdf/sw/gcc-4.8.5/openmpi-4.0.4/bin/mpirun -n {n} {command_mpi}'
