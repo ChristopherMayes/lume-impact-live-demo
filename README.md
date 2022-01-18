@@ -30,31 +30,44 @@ source example_sdf_lcls.env # source appropriate environment:
 `./run.bash`
 ```
 
-## Environment variables
+## TOML properties file
 
-Running the simulation requires definition of the following variables:
+Running the simulation requires definition of the following variables within a toml file:
+
+host=sdf
+config_file=/sdf/group/ard/impact/facet2-lattice/impact/models/f2e_inj/v0/ImpactT.yaml
+distgen_input_file=/sdf/group/ard/impact/facet2-lattice/distgen/models/f2e_inj/vcc_image/distgen.yaml
+workdir=/sdf/group/ard/impact/output
+summary_output_dir=/sdf/group/ard/impact/output/summary
+plot_output_dir=/sdf/group/ard/impact/output/plot
+archive_dir=/sdf/group/ard/impact/output/archive
+snapshot_dir=/sdf/group/ard/impact/output/snapshot
+distgen_laser_file=/sdf/group/ard/impact/output/distgen_laser.txt
+num_procs=64
+mpi_run_cmd='salloc --partition ard -N 1 -n {n} /sdf/sw/gcc-4.8.5/openmpi-4.0.4/bin/mpirun -n {n} {command_mpi}'
+impact_command=/sdf/home/c/cmayes/impact/bin/ImpactTexe
+impact_command_mpi='/sdf/home/c/cmayes/impact/bin/ImpactTexe-mpi'
+
 
 | Variable                  | Description                          |
 |---------------------------|--------------------------------------|
-| IMPACT_HOST               | Host of Impact sim                   |
-| IMPACT_CONFIG_FILE        | Impact configuration file            |
-| IMPACT_DISTGEN_INPUT_FILE | Input to distgen generation          |
-| IMPACT_WORKDIR            | Working directory of simulation run  |
-| IMPACT_SUMMARY_OUTPUT_DIR | Output directory for summary files   |
-| IMPACT_PLOT_OUTPUT_DIR    | Output directory of plot files       |
-| IMPACT_ARCHIVE_DIR        | Output directory for archive files   |
-| IMPACT_SNAPSHOT_DIR       | Output directory for snapshot files  |
-| IMPACT_DISTGEN_LASER_FILE | File for generating distgen input    |
-| IMPACT_NUM_PROCS          | Number of processes to use           |
-| IMPACT_COMMAND            | Command for Impact execution         |
-| IMPACT_MPI_RUN_CMD        | Command for running MPI              |
+| host                      | Host of Impact sim                   |
+| config_file               | Impact configuration file            |
+| distgen_input_file        | Input to distgen generation          |
+| workdir                   | Working directory of simulation run  |
+| summary_output_dir        | Output directory for summary files   |
+| plot_output_dir           | Output directory of plot files       |
+| archive_dir               | Output directory for archive files   |
+| shapshot_dir              | Output directory for snapshot files  |
+| distgen_laser_file        | File for generating distgen input    |
+| num_procs                 | Number of processes to use           |
+| mpi_run                   | command for running mpi              |
 
 Running on SDF additionally requires:
 
 | Variable                  | Description                          |
 |---------------------------|--------------------------------------|
-| IMPACT_COMMAND_MPI        | MPI for running impact command
-| IMPACT_COMMAND            | Command for Impact execution         |
-
+| impact_command            | Command for Impact execution         |
+| impact_command_mpi        | Command for running MPI              |
 
 Default configurations are given in the example environment files packaged with this repository.
