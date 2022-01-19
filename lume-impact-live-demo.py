@@ -24,7 +24,7 @@ from impact import evaluate_impact_with_distgen, run_impact_with_distgen
 from impact.tools import isotime
 from impact.evaluate import  default_impact_merit
 from impact import Impact
-
+import traceback
 from make_dashboard import make_dashboard
 from get_vcc_image import get_live_distgen_xy_dist, VCC_DEVICE_PV
 
@@ -562,7 +562,7 @@ if __name__ == '__main__':
         try:
             run1()
         except Exception as e:
-            logger.info(str(e))
-            sleep(10)
+            logger.info(traceback.format_exc())
             logger.info('Something BAD happened. Sleeping for 10 s ...')
+            sleep(10)
 
