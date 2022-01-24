@@ -26,8 +26,7 @@ Test with: `caget KLYS:LI22:11:KPHR`
 
 For example, LCLS on SDF:
 ```
-source example_sdf_lcls.env # source appropriate environment:
-`./run.bash`
+python lume-impact-live-demo.py
 ```
 
 ## TOML properties file
