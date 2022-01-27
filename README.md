@@ -5,7 +5,7 @@ Demonstration of LUME-Impact running a live model fetching data from the LCLS EP
 
 # Setup
 
-Make the `lume-test` environment:
+Make the `lume-live` environment:
 `conda env create --file environment.yml`
 
 Convert notebooks to `.py` files:
@@ -24,6 +24,35 @@ Test with: `caget KLYS:LI22:11:KPHR`
 
 # Run
 
+For example, LCLS on SDF:
+```
+python lume-impact-live-demo.py
+```
+
+## TOML properties file
+
+Running the simulation requires definition of the following variables within a toml file:
 
 
-`./run.bash`
+| Variable                  | Description                          |
+|---------------------------|--------------------------------------|
+| host                      | Host of Impact sim                   |
+| config_file               | Impact configuration file            |
+| distgen_input_file        | Input to distgen generation          |
+| workdir                   | Working directory of simulation run  |
+| summary_output_dir        | Output directory for summary files   |
+| plot_output_dir           | Output directory of plot files       |
+| archive_dir               | Output directory for archive files   |
+| shapshot_dir              | Output directory for snapshot files  |
+| distgen_laser_file        | File for generating distgen input    |
+| num_procs                 | Number of processes to use           |
+| mpi_run                   | command for running mpi              |
+
+Running on SDF additionally requires:
+
+| Variable                  | Description                          |
+|---------------------------|--------------------------------------|
+| impact_command            | Command for Impact execution         |
+| impact_command_mpi        | Command for running MPI              |
+
+Default configurations are given in the example environment files packaged with this repository.
