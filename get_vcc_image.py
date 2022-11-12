@@ -12,8 +12,38 @@ import epics
 import numpy as np
 import os
 
+import h5py
+
+from lcls_live.tools import isotime
+
+import logging
+logger = logging.getLogger(__name__)
+
+
+# # EPICS tools
 
 # In[2]:
+
+
+def caget_dict(names):
+    return dict(zip(names, epics.caget_many(names)))
+
+def save_pvdata(filename, pvdata, attrs=None):
+    
+    logger.info(f"Writing {filename}")
+    
+    with h5py.File(filename, 'w') as h5:
+        if attrs:
+            for k, v in attrs.items():
+                h5.attrs[k] = v
+        for k, v in pvdata.items():
+            h5[k] = v
+            
+
+
+# # Image tools
+
+# In[3]:
 
 
 from skimage.filters import sobel
@@ -21,78 +51,6 @@ from skimage.util import img_as_ubyte
 from skimage.segmentation import watershed
 from skimage.filters.rank import median
 from skimage.morphology import disk
-
-
-# In[3]:
-
-
-#BASEPV = 'CAMR:IN20:186' # LCLS
-#BASEPV = 'CAMR:LT10:900' # FACET-II
-
-
-# In[4]:
-
-
-LCLS_VCC_PV = {
-    
-    'array':  'CAMR:IN20:186:IMAGE',
-    'size_x': 'CAMR:IN20:186:N_OF_COL',
-    'size_y': 'CAMR:IN20:186:N_OF_ROW',
-    'resolution': 'CAMR:IN20:186:RESOLUTION',
-    'resolution_units': 'CAMR:IN20:186:RESOLUTION.EGU'
-    
-    
-}
-#epics.caget_many(LCLS_VCC_PV.values())
-
-
-# In[5]:
-
-
-FACET_VCC_PV = {
-    
-    'array': 'CAMR:LT10:900:Image:ArrayData',
-    'size_x': 'CAMR:LT10:900:ArraySizeX_RBV',
-    'size_y': 'CAMR:LT10:900:ArraySizeY_RBV',
-    'resolution': 'CAMR:LT10:900:RESOLUTION',
-    'resolution_units': 'CAMR:LT10:900:RESOLUTION.EGU'
-    
-    
-}
-#epics.caget_many(FACET_VCC_PV.values())
-
-
-# In[6]:
-
-
-# Master dict
-VCC_DEVICE_PV = {
-    'CAMR:IN20:186':LCLS_VCC_PV,
-    'CAMR:LT10:900':FACET_VCC_PV 
-    
-}
-
-def get_vcc_data(vcc_device, pvdata=None):
-    # Get actual PVs
-    d = VCC_DEVICE_PV[vcc_device]
-    
-    if pvdata:
-        values = [pvdata[k] for k in d.values()]
-    else: 
-        values = epics.caget_many(d.values())
-    
-    data =  dict(zip(d.keys(),values))
-    # Make consistent units
-    if data['resolution_units'] == 'um/px':
-        data['resolution_units'] = 'um'
-    return data
-    
-    
-#get_vcc_data('CAMR:LT10:900')    
-
-
-# In[7]:
-
 
 def isolate_image(img, fclip=0.08):
     """
@@ -131,7 +89,155 @@ def isolate_image(img, fclip=0.08):
     return cutimg
 
 
-# In[8]:
+# # PVs
+
+# In[5]:
+
+
+LCLS_VCC_PV = {
+    
+    'array':  'CAMR:IN20:186:IMAGE',
+    'size_x': 'CAMR:IN20:186:N_OF_COL',
+    'size_y': 'CAMR:IN20:186:N_OF_ROW',
+    'resolution': 'CAMR:IN20:186:RESOLUTION',
+    'resolution_units': 'CAMR:IN20:186:RESOLUTION.EGU'
+    
+    
+}
+#epics.caget_many(LCLS_VCC_PV.values())
+
+
+# In[6]:
+
+
+LCLS2_VCC_PV = {
+    
+    'array':  'CAMR:LGUN:950:Image:ArrayData',
+    'size_x': 'CAMR:LGUN:950:Image:ArraySize0_RBV',
+    'size_y': 'CAMR:LGUN:950:Image:ArraySize1_RBV',
+    'resolution': 'CAMR:LGUN:950:RESOLUTION',
+    'resolution_units': 'CAMR:LGUN:950:RESOLUTION.EGU'
+}
+#epics.caget_many(LCLS_VCC_PV.values())
+
+
+# In[7]:
+
+
+FACET_VCC_PV = {
+    
+    'array': 'CAMR:LT10:900:Image:ArrayData',
+    'size_x': 'CAMR:LT10:900:ArraySizeX_RBV',
+    'size_y': 'CAMR:LT10:900:ArraySizeY_RBV',
+    'resolution': 'CAMR:LT10:900:RESOLUTION',
+    'resolution_units': 'CAMR:LT10:900:RESOLUTION.EGU'
+    
+    
+}
+
+# Master dict
+VCC_DEVICE_PV = {
+    'CAMR:LGUN:950':LCLS2_VCC_PV,
+    'CAMR:IN20:186':LCLS_VCC_PV,
+    'CAMR:LT10:900':FACET_VCC_PV 
+}
+
+#epics.caget_many(FACET_VCC_PV.values())
+
+
+# # Get
+
+# In[27]:
+
+
+def get_epics_vcc_data(epics, vcc_device, wait_for_good=True, good_std=4):
+    """
+     epics,
+    wait_for_good: bool, default True
+        will repeat epics.caget_many until the array data
+        seems like an image
+    """
+    # Get actual PVs
+    d = VCC_DEVICE_PV[vcc_device].copy()
+    
+    trials = 0
+    
+    if wait_for_good:  
+        array_pvname = d.pop('array')
+
+        found = False
+        m = epics.PV(array_pvname)
+        ii = 0
+        while not found:
+            ii += 1
+            if ii % 10 == 0:
+                logger.debug(f"Waited {ii} times for good {array_pvname}")
+            trials += 1
+            a = m.get()
+            if a is None:
+                continue
+            if a.std() > good_std:
+                found = True
+                # Get regular pvs
+                pvdata = caget_dict(d.values())                
+                isotime_found = isotime()
+                pvdata[array_pvname] = a
+    else:
+        pvdata = caget_dict(d.values())
+        isotime_found = isotime()
+        
+    #out = {'pvdata': pvdata, 'isotime': isotime_found}
+
+    return pvdata, isotime_found
+
+#res = get_epics_vcc_data(epics, 'CAMR:LGUN:950', wait_for_good=True)
+#res
+
+
+# In[28]:
+
+
+def vcc_image_data_from_pvdata(pvdata, vcc_device):
+    """
+    Process raw pvdata dict into image data
+    """
+    d = VCC_DEVICE_PV[vcc_device]
+    
+    image_data = {}
+    for k, pvname in d.items():
+        image_data[k] = pvdata[pvname]
+        
+    # Make consistent units
+    if image_data['resolution_units'] == 'um/px':
+        image_data['resolution_units'] = 'um'  
+        
+    a = image_data.pop('array')
+    n = len(a)
+    
+    # Try to guess shape, because PVs are sometimes bad (None)
+    if n == 1040 *  1392:
+        shape = (1040 , 1392)
+    if n == 1024 * 1024:
+        shape = (1024 , 1024)        
+    else:
+        shape = (image_data['size_y'], image_data['size_x'])
+    
+    
+    image_data['image'] = a.reshape(shape)           
+        
+    return image_data
+
+
+#vcc_image_data_from_pvdata(res[0],     'CAMR:LGUN:950')
+
+
+# In[29]:
+
+
+get_ipython().run_cell_magic('time', '', 'def get_vcc_data(epics, vcc_device, pvdata=None, wait_for_good=True, good_std=4, save_path=None):\n    """\n    \n    wait_for_good: bool, default True\n        will repeat epics.caget_many until the array data\n        seems like an image\n    """\n    \n    pvdata, isotime_found = get_epics_vcc_data(epics, vcc_device, wait_for_good=wait_for_good, good_std=good_std) \n    \n    if save_path:\n        assert os.path.exists(save_path)\n        fname = os.path.join(save_path,  f"pvdata_{vcc_device}_{isotime_found}.h5")\n        save_pvdata(fname, pvdata, attrs={\'isotime\':isotime_found})\n    \n    image_data = vcc_image_data_from_pvdata(pvdata, vcc_device)\n    \n    return image_data\n\n#out = get_vcc_data(epics, \'CAMR:LGUN:950\', save_path=\'vcc_archive\')\n#out\n')
+
+
+# In[30]:
 
 
 def write_distgen_xy_dist(filename, image, resolution, resolution_units='m'):
@@ -158,36 +264,36 @@ y {widths[0]} {center_y}  [{resolution_units}]"""
     return os.path.abspath(filename)
 
 
-# In[9]:
+# In[31]:
 
 
 def get_live_distgen_xy_dist(filename='test.txt', vcc_device='CAMR:IN20:186', pvdata=None, fclip=0.08):
     
     # Get data
-    dat = get_vcc_data(vcc_device, pvdata)
+    image_data = get_vcc_data(epics, vcc_device, pvdata)
+    image = image_data['image']
     
-    arr = dat['array']
-    image = arr.reshape(dat['size_y'], dat['size_x'])
-        
     cutimg = isolate_image(image, fclip=fclip)
     
     assert cutimg.ptp() > 0
         
-    fout = write_distgen_xy_dist(filename, cutimg, dat['resolution'], resolution_units=dat['resolution_units'])
+    fout = write_distgen_xy_dist(filename, cutimg,
+                                 image_data['resolution'],
+                                 resolution_units=image_data['resolution_units'])
     
     return fout, image, cutimg
     
-   
 # import matplotlib.pyplot as plt
 # %config InlineBackend.figure_format = 'retina'
-# fout, i1, i2 = get_live_distgen_xy_dist(vcc_device='CAMR:IN20:186')
-# #fout, i1, i2 = get_live_distgen_xy_dist(vcc_device='CAMR:LT10:900', fclip=0.08)
-# 
+# fout, i1, i2 = get_live_distgen_xy_dist(vcc_device='CAMR:LGUN:950', fclip=0.08)
+# # #fout, i1, i2 = get_live_distgen_xy_dist(vcc_device='CAMR:LT10:900', fclip=0.08)
+# # 
 # plt.imshow(i2)
-# 
+# fout
+# # 
 
 
-# In[10]:
+# In[ ]:
 
 
 # #gfile = os.path.expandvars('$FACET2_LATTICE/distgen/models/f2e_inj/vcc_image/distgen.yaml')
@@ -213,10 +319,4 @@ def get_live_distgen_xy_dist(filename='test.txt', vcc_device='CAMR:IN20:186', pv
 
 # fout, i1, i2 = get_live_distgen_xy_dist(vcc_device='CAMR:LT10:900', pvdata=PVDATA)
 # plt.imshow(i2)
-
-
-# In[ ]:
-
-
-
 
