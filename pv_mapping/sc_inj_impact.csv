@@ -1,9 +1,10 @@
 Variable,bmad_name,device_pv_name,pv_unit,impact_name,impact_factor,impact_offset,impact_description,impact_unit
-Gun Voltage,RFGUNB,SOLN:GUNB:212:BACT,xxx,RFGUNB:rf_field_scale,0,1.82E+07,,
+Gun Voltage,RFGUNB,SOLN:GUNB:212:BACT,xxx,RFGUNB:rf_field_scale,0,1.84E+07,Value for 700 kV ,V/m
+Gun phase,RFGUNB,SOLN:GUNB:212:BACT,xxx,RFGUNB:autophase_deg,0,0.00E+00,,deg
 Solenoid 1,SOL1B,SOLN:GUNB:212:BACT,kG*m,SOL1B:solenoid_field_scale,1.159555454,0,peak field,T
 Solenoid 2,SOL2B,SOLN:GUNB:823:BACT,kG*m,SOL2B:solenoid_field_scale,1.159555454,0,peak field,T
 charge,CATHODE,BPMS:GUNB:314:TMIT,n_electrons,distgen:total_charge:value,1.60E-07,0,total charge on cathode, pC
-Buncher Voltage,BUN1B,ACCL:GUNB:455:AACT_AVG,MV,BUN1B:rf_field_scale,0,1707653.93,peak on-axis electric field,V/m
+Buncher Voltage,BUN1B,ACCL:GUNB:455:AACT_AVG,MV,BUN1B:rf_field_scale,0,1786301.125,values for 200 kV,V/m
 Buncher Phase,BUN1B,ACCL:GUNB:455:PACT_AVG,deg,BUN1B:autophase_deg,0,-60,phase relative to on-crest,deg
 Cavity 1 voltage,CAVL011,ACCL:L0B:0110:AACTMEAN,MV,CAVL011:rf_field_scale,1861947.347,0,peak on-axis electric field,V/m
 Cavity 2 voltage,CAVL012,ACCL:L0B:0120:AACTMEAN,MV,CAVL012:rf_field_scale,1861947.347,0,peak on-axis electric field,V/m
