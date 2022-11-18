@@ -5,7 +5,7 @@
 # 
 # See https://github.com/slaclab/lcls-lattice/blob/master/distgen/models/cu_inj/vcc_image/vcc_image.ipynb for a better explanation
 
-# In[1]:
+# In[ ]:
 
 
 import epics
@@ -22,7 +22,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# In[2]:
+# In[ ]:
 
 
 # Nicer plotting
@@ -32,7 +32,7 @@ get_ipython().run_line_magic('config', "InlineBackend.figure_format = 'retina'")
 
 # # EPICS tools
 
-# In[3]:
+# In[ ]:
 
 
 def caget_dict(names):
@@ -53,7 +53,7 @@ def save_pvdata(filename, pvdata, attrs=None):
 
 # # Image tools
 
-# In[4]:
+# In[ ]:
 
 
 from skimage.filters import sobel
@@ -101,7 +101,7 @@ def isolate_image(img, fclip=0.08):
 
 # # PVs
 
-# In[5]:
+# In[ ]:
 
 
 LCLS_VCC_PV = {
@@ -117,7 +117,7 @@ LCLS_VCC_PV = {
 #epics.caget_many(LCLS_VCC_PV.values())
 
 
-# In[6]:
+# In[ ]:
 
 
 LCLS2_VCC_PV = {
@@ -131,7 +131,7 @@ LCLS2_VCC_PV = {
 #epics.caget_many(LCLS_VCC_PV.values())
 
 
-# In[7]:
+# In[ ]:
 
 
 FACET_VCC_PV = {
@@ -157,7 +157,7 @@ VCC_DEVICE_PV = {
 
 # # Get
 
-# In[8]:
+# In[ ]:
 
 
 def get_epics_vcc_data(epics, vcc_device, wait_for_good=True, good_std=4):
@@ -204,7 +204,7 @@ def get_epics_vcc_data(epics, vcc_device, wait_for_good=True, good_std=4):
 #res
 
 
-# In[9]:
+# In[ ]:
 
 
 def vcc_image_data_from_pvdata(pvdata, vcc_device):
@@ -243,13 +243,13 @@ def vcc_image_data_from_pvdata(pvdata, vcc_device):
 #vcc_image_data_from_pvdata(res[0],     'CAMR:LGUN:950')
 
 
-# In[10]:
+# In[ ]:
 
 
 get_ipython().run_cell_magic('time', '', 'def get_vcc_data(epics, vcc_device, pvdata=None, wait_for_good=True, good_std=4, save_path=None):\n    """\n    \n    wait_for_good: bool, default True\n        will repeat epics.caget_many until the array data\n        seems like an image\n    """\n    \n    pvdata, isotime_found = get_epics_vcc_data(epics, vcc_device, wait_for_good=wait_for_good, good_std=good_std) \n    \n    if save_path:\n        assert os.path.exists(save_path)\n        fname = os.path.join(save_path,  f"pvdata_{vcc_device}_{isotime_found}.h5")\n        save_pvdata(fname, pvdata, attrs={\'isotime\':isotime_found})\n    \n    image_data = vcc_image_data_from_pvdata(pvdata, vcc_device)\n    \n    return image_data\n\n#out = get_vcc_data(epics, \'CAMR:LGUN:950\', save_path=\'vcc_archive\')\n#plt.imshow(out[\'image\'])\n')
 
 
-# In[11]:
+# In[ ]:
 
 
 def write_distgen_xy_dist(filename, image, resolution, resolution_units='m'):
@@ -276,7 +276,7 @@ y {widths[0]} {center_y}  [{resolution_units}]"""
     return os.path.abspath(filename)
 
 
-# In[12]:
+# In[ ]:
 
 
 def get_live_distgen_xy_dist(filename='test.txt', vcc_device='CAMR:IN20:186', pvdata=None, fclip=0.08):
@@ -305,13 +305,13 @@ def get_live_distgen_xy_dist(filename='test.txt', vcc_device='CAMR:IN20:186', pv
 # # 
 
 
-# In[13]:
+# In[ ]:
 
 
 #!cp test.txt $LCLS_LATTICE/distgen/models/sc_inj/vcc_image/laser_image.txt
 
 
-# In[14]:
+# In[ ]:
 
 
 # #gfile = os.path.expandvars('$FACET2_LATTICE/distgen/models/f2e_inj/vcc_image/distgen.yaml')
@@ -325,14 +325,14 @@ def get_live_distgen_xy_dist(filename='test.txt', vcc_device='CAMR:IN20:186', pv
 # G.particles.plot('x', 'y', figsize=(5,5))
 
 
-# In[15]:
+# In[ ]:
 
 
 # PVDATA = dict(zip(FACET_VCC_PV.values(), epics.caget_many(FACET_VCC_PV.values())))
 # PVDATA
 
 
-# In[16]:
+# In[ ]:
 
 
 # fout, i1, i2 = get_live_distgen_xy_dist(vcc_device='CAMR:LT10:900', pvdata=PVDATA)

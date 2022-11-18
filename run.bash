@@ -1,1 +1,1 @@
-python lume-impact-live-demo.py
+ipython lume-impact-live-demo.py

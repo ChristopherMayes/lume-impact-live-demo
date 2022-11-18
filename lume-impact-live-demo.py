@@ -3,21 +3,21 @@
 
 # # Live cu-inj-live-impact 
 
-# In[1]:
+# In[ ]:
 
 
 # Setup directories, and convert dashboard notebook to a script for importing
 #!./setup.bash
 
 
-# In[2]:
+# In[1]:
 
 
 get_ipython().run_line_magic('load_ext', 'autoreload')
 get_ipython().run_line_magic('autoreload', '2')
 
 
-# In[3]:
+# In[2]:
 
 
 from impact import evaluate_impact_with_distgen, run_impact_with_distgen
@@ -35,7 +35,7 @@ import matplotlib as mpl
 from pmd_beamphysics.units import e_charge
 
 
-# In[4]:
+# In[3]:
 
 
 import pandas as pd
@@ -54,41 +54,37 @@ from time import sleep, time
 import matplotlib.pyplot as plt
 
 import matplotlib as mpl
-#mpl.use('Agg')
+mpl.use('Agg')
 
 # Nicer plotting
 get_ipython().run_line_magic('config', "InlineBackend.figure_format = 'retina'")
 
 
-# # Logging
+# # Top level config
 
-# In[5]:
-
-
-#MODEL = 'f2e_inj'
-#MODEL = 'cu_inj'
-
-
-# In[6]:
+# In[4]:
 
 
 DEBUG=False
 USE_VCC = False
-LIVE = False
+LIVE = True
 SNAPSHOT = 'examples/sc_inj-snapshot-2022-11-12T12:38:08-08:00.h5'
 MIN_CHARGE_pC = 10
 
 MODEL = 'sc_inj'
-config = toml.load(f"configs/local_sc_inj.toml")
+
+config = toml.load("configs/sdf_sc_inj.toml")
 
 
-# In[7]:
+# In[5]:
 
 
 PREFIX = f'lume-impact-live-demo-{MODEL}'
 
 
-# In[8]:
+# # Logging
+
+# In[6]:
 
 
 import logging
@@ -115,7 +111,7 @@ logger.addHandler(file_handler)
 
 # ## Utils
 
-# In[9]:
+# In[7]:
 
 
 # Saving and loading
@@ -150,7 +146,7 @@ def load_pvdata(filename):
 # 
 # See README for required toml definition.
 
-# In[10]:
+# In[8]:
 
 
 HOST = config.get('host') # mcc-simul or 'sdf'
@@ -205,7 +201,7 @@ if HOST == 'sdf':
 
 
 
-# In[11]:
+# In[9]:
 
 
 CONFIG0 = {}
@@ -250,7 +246,7 @@ else:
 
 # # Select: LCLS or FACET
 
-# In[12]:
+# In[10]:
 
 
 # PV -> Sim conversion table
@@ -312,7 +308,7 @@ else:
     raise
 
 
-# In[13]:
+# In[11]:
 
 
 CONFIG0, SETTINGS0
@@ -320,7 +316,7 @@ CONFIG0, SETTINGS0
 
 # # Set up monitors
 
-# In[14]:
+# In[12]:
 
 
 # Gun: 700 kV
@@ -328,7 +324,7 @@ CONFIG0, SETTINGS0
 # Buncher: +60 deg relative to on-crest
 
 
-# In[15]:
+# In[13]:
 
 
 DF = pd.read_csv(CSV)#.dropna()
@@ -341,7 +337,7 @@ if USE_VCC:
 DF
 
 
-# In[16]:
+# In[14]:
 
 
 if LIVE:
@@ -350,7 +346,7 @@ if LIVE:
     sleep(5)
 
 
-# In[17]:
+# In[15]:
 
 
 def get_snapshot(snapshot_file=None):
@@ -388,7 +384,7 @@ PVDATA, ITIME = get_snapshot(SNAPSHOT)
 PVDATA, ITIME
 
 
-# In[18]:
+# In[ ]:
 
 
 #while True:
@@ -397,7 +393,7 @@ PVDATA, ITIME
 
 # # EPICS -> Simulation settings
 
-# In[19]:
+# In[23]:
 
 
 def get_settings(csv, base_settings={}, snapshot_dir=None, snapshot_file=None):
@@ -412,12 +408,7 @@ def get_settings(csv, base_settings={}, snapshot_dir=None, snapshot_file=None):
 
     pvdata, itime = get_snapshot(snapshot_file)
     
-    if snapshot_dir and not snapshot_file:
-        filename = os.path.abspath(os.path.join(snapshot_dir, f'{MODEL}-snapshot-{itime}.h5'))
-        logger.info(f'EPICS shapshot written: {filename}')
-        save_pvdata(filename, pvdata, itime)
-        # DEBUG: check readback
-        #pvdata, itime = load_pvdata(filename)
+
 
     df['pv_value'] = [pvdata[k] for k in pv_names]
     
@@ -440,23 +431,31 @@ def get_settings(csv, base_settings={}, snapshot_dir=None, snapshot_file=None):
         dfile, img, cutimg = get_live_distgen_xy_dist(filename=DISTGEN_LASER_FILE, vcc_device=VCC_DEVICE, pvdata=pvdata)        
     else:
         img, cutimg = None, None
-        #settings['distgen:r_dist:max_r:value'] = 0.35 # TEMP        
-    
+        #settings['distgen:r_dist:max_r:value'] = 0.35 # TEMP     
+        
+    if snapshot_dir and not snapshot_file:
+        filename = os.path.abspath(os.path.join(snapshot_dir, f'{MODEL}-snapshot-{itime}.h5'))
+        total_charge_pC = settings['distgen:total_charge:value']
+        if total_charge_pC < MIN_CHARGE_pC:
+            logger.info(f'total charge is too low: {total_charge_pC:.2f} pC, not saving snapshot')         
+        else:
+            save_pvdata(filename, pvdata, itime)
+            logger.info(f'EPICS shapshot written: {filename}')
+        
+        
     return settings, df, img, cutimg, itime
 
-#res = get_settings(CSV, SETTINGS0, snapshot_dir='.')
-#DF[['Variable', 'bmad_name', 'pv_value','pv_unit',  'device_min', 'device_max',  'impact_name', 'impact_factor', 'impact_unit',
-#        'impact_description',  'impact_value']]
-#res[1]
+# res = get_settings(CSV, SETTINGS0, snapshot_dir='.')
+# res[1]
 
 
-# In[20]:
+# In[17]:
 
 
 #get_settings(CSV, SETTINGS0, snapshot_dir='.', snapshot_file=SNAPSHOT)
 
 
-# In[21]:
+# In[18]:
 
 
 # gfile = CONFIG0['distgen_input_file']
@@ -471,7 +470,7 @@ def get_settings(csv, base_settings={}, snapshot_dir=None, snapshot_file=None):
 # G.particles.plot('x', 'y', figsize=(5,5))
 
 
-# In[22]:
+# In[19]:
 
 
 DO_TIMING = False
@@ -497,7 +496,7 @@ if DO_TIMING:
 
 # # Get live values, run Impact-T, make dashboard
 
-# In[23]:
+# In[24]:
 
 
 # Patch this into the function below for the dashboard creation
@@ -509,6 +508,9 @@ def my_merit(impact_object, itime):
     #print('Dashboard written:', plot_file)
     logger.info(f'Dashboard written: {plot_file}')
     
+    # Make all readable
+    os.chmod(plot_file, 0o644)
+    
     # Assign extra info
     merit0['plot_file'] = plot_file    
     merit0['isotime'] = itime
@@ -519,10 +521,8 @@ def my_merit(impact_object, itime):
     return merit0
 
 
-# In[24]:
+# In[25]:
 
-
-MIN_CHARGE = 10
 
 def run1():
     dat = {}
@@ -557,46 +557,40 @@ def run1():
     logger.info(f'...finished in {(time()-t0)/60:.1f} min')
     fname = fname=f'{SUMMARY_OUTPUT_DIR}/{PREFIX}-{itime}.json'
 
-    #json.dump(dat, open(fname, 'w'), cls=NpEncoder)
-    #print('Written:', fname)
-    logger.info(f'Output written: {fname}')
+    json.dump(dat, open(fname, 'w'), cls=NpEncoder)
+    logger.info(f'Summary output written: {fname}')
     return dat
     
-
-
-# In[25]:
-
-
-CONFIG0
 
 
 # In[26]:
 
 
-get_ipython().run_cell_magic('time', '', 'result = run1()\n')
+# %%time
+# result = run1()
 
 
-# In[30]:
+# In[ ]:
 
 
 #result.keys()
 
 
-# In[31]:
+# In[ ]:
 
 
 # Basic config
 #result['config']
 
 
-# In[32]:
+# In[ ]:
 
 
 # Simulation inputs
 #result['inputs']
 
 
-# In[33]:
+# In[ ]:
 
 
 # Simulation outputs
@@ -605,11 +599,11 @@ get_ipython().run_cell_magic('time', '', 'result = run1()\n')
 
 # # Show the plot 
 
-# In[34]:
+# In[27]:
 
 
-from IPython.display import Image
-Image(filename=result['outputs']['plot_file'])
+# from IPython.display import Image
+# Image(filename=result['outputs']['plot_file'])
 
 
 # # loop it
