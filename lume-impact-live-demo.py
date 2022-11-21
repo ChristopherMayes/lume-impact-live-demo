@@ -10,14 +10,14 @@
 #!./setup.bash
 
 
-# In[1]:
+# In[ ]:
 
 
 get_ipython().run_line_magic('load_ext', 'autoreload')
 get_ipython().run_line_magic('autoreload', '2')
 
 
-# In[2]:
+# In[ ]:
 
 
 from impact import evaluate_impact_with_distgen, run_impact_with_distgen
@@ -35,7 +35,7 @@ import matplotlib as mpl
 from pmd_beamphysics.units import e_charge
 
 
-# In[3]:
+# In[ ]:
 
 
 import pandas as pd
@@ -62,11 +62,11 @@ get_ipython().run_line_magic('config', "InlineBackend.figure_format = 'retina'")
 
 # # Top level config
 
-# In[4]:
+# In[ ]:
 
 
 DEBUG=False
-USE_VCC = False
+USE_VCC = True
 LIVE = True
 SNAPSHOT = 'examples/sc_inj-snapshot-2022-11-12T12:38:08-08:00.h5'
 MIN_CHARGE_pC = 10
@@ -76,7 +76,7 @@ MODEL = 'sc_inj'
 config = toml.load("configs/sdf_sc_inj.toml")
 
 
-# In[5]:
+# In[ ]:
 
 
 PREFIX = f'lume-impact-live-demo-{MODEL}'
@@ -84,7 +84,7 @@ PREFIX = f'lume-impact-live-demo-{MODEL}'
 
 # # Logging
 
-# In[6]:
+# In[ ]:
 
 
 import logging
@@ -111,7 +111,7 @@ logger.addHandler(file_handler)
 
 # ## Utils
 
-# In[7]:
+# In[ ]:
 
 
 # Saving and loading
@@ -146,7 +146,7 @@ def load_pvdata(filename):
 # 
 # See README for required toml definition.
 
-# In[8]:
+# In[ ]:
 
 
 HOST = config.get('host') # mcc-simul or 'sdf'
@@ -201,7 +201,7 @@ if HOST == 'sdf':
 
 
 
-# In[9]:
+# In[ ]:
 
 
 CONFIG0 = {}
@@ -246,7 +246,7 @@ else:
 
 # # Select: LCLS or FACET
 
-# In[10]:
+# In[ ]:
 
 
 # PV -> Sim conversion table
@@ -281,14 +281,16 @@ if MODEL == 'sc_inj':
     
     DASHBOARD_KWARGS = {'outpath':PLOT_OUTPUT_DIR,
                     'screen1': 'YAG01B',
-                    'screen2': 'BEAM0',
-                    'screen3': 'OTR0H04',
+                  #  'screen2': 'BEAM0',
+                  #  'screen3': 'OTR0H04',
+                    'screen2': 'CM01BEG',
+                    'screen3': 'BEAM0',
                     'ylim' : (0, 3e-6), # Emittance scale   
                     'ylim2': (0, None), # sigma_x scale                    
                     'name' : PREFIX
                    }    
     
-    SETTINGS0['stop'] = 28
+    SETTINGS0['stop'] = 14 # 28
     SETTINGS0['distgen:t_dist:sigma_t:value'] =  16 / 2.355   # ps, equivalent to 16ps FWHM from Feng
     
 elif MODEL == 'f2e_inj':
@@ -308,7 +310,7 @@ else:
     raise
 
 
-# In[11]:
+# In[ ]:
 
 
 CONFIG0, SETTINGS0
@@ -316,7 +318,7 @@ CONFIG0, SETTINGS0
 
 # # Set up monitors
 
-# In[12]:
+# In[ ]:
 
 
 # Gun: 700 kV
@@ -324,7 +326,7 @@ CONFIG0, SETTINGS0
 # Buncher: +60 deg relative to on-crest
 
 
-# In[13]:
+# In[ ]:
 
 
 DF = pd.read_csv(CSV)#.dropna()
@@ -337,7 +339,7 @@ if USE_VCC:
 DF
 
 
-# In[14]:
+# In[ ]:
 
 
 if LIVE:
@@ -346,7 +348,7 @@ if LIVE:
     sleep(5)
 
 
-# In[15]:
+# In[ ]:
 
 
 def get_snapshot(snapshot_file=None):
@@ -368,6 +370,7 @@ def get_snapshot(snapshot_file=None):
         
         if ':IMAGE:ARRAYDATA' in k.upper():
             found = False
+            logger.info(f'Waiting for good {k}')
             while not found:
                 if v is None:
                     continue
@@ -376,12 +379,12 @@ def get_snapshot(snapshot_file=None):
                 else:
                     v = MONITOR[k].get()
             if v.ptp() < 128:
-                v = v.astype(np.int8) # Downcast preeptively 
+                v = v.astype(np.int8) # Downcast preemptively 
                                 
             pvdata[k] = v
     return pvdata, itime
-PVDATA, ITIME = get_snapshot(SNAPSHOT)
-PVDATA, ITIME
+# PVDATA, ITIME = get_snapshot(SNAPSHOT)
+# PVDATA, ITIME
 
 
 # In[ ]:
@@ -393,7 +396,7 @@ PVDATA, ITIME
 
 # # EPICS -> Simulation settings
 
-# In[23]:
+# In[ ]:
 
 
 def get_settings(csv, base_settings={}, snapshot_dir=None, snapshot_file=None):
@@ -408,8 +411,6 @@ def get_settings(csv, base_settings={}, snapshot_dir=None, snapshot_file=None):
 
     pvdata, itime = get_snapshot(snapshot_file)
     
-
-
     df['pv_value'] = [pvdata[k] for k in pv_names]
     
     # Assign impact
@@ -428,7 +429,8 @@ def get_settings(csv, base_settings={}, snapshot_dir=None, snapshot_file=None):
 
     # VCC image
     if USE_VCC:
-        dfile, img, cutimg = get_live_distgen_xy_dist(filename=DISTGEN_LASER_FILE, vcc_device=VCC_DEVICE, pvdata=pvdata)        
+        dfile, img, cutimg = get_live_distgen_xy_dist(filename=DISTGEN_LASER_FILE, vcc_device=VCC_DEVICE, pvdata=pvdata)  
+        settings['distgen:xy_dist:file'] = dfile
     else:
         img, cutimg = None, None
         #settings['distgen:r_dist:max_r:value'] = 0.35 # TEMP     
@@ -445,17 +447,17 @@ def get_settings(csv, base_settings={}, snapshot_dir=None, snapshot_file=None):
         
     return settings, df, img, cutimg, itime
 
-# res = get_settings(CSV, SETTINGS0, snapshot_dir='.')
+#res = get_settings(CSV, SETTINGS0, snapshot_dir='.')
 # res[1]
 
 
-# In[17]:
+# In[ ]:
 
 
 #get_settings(CSV, SETTINGS0, snapshot_dir='.', snapshot_file=SNAPSHOT)
 
 
-# In[18]:
+# In[ ]:
 
 
 # gfile = CONFIG0['distgen_input_file']
@@ -470,7 +472,7 @@ def get_settings(csv, base_settings={}, snapshot_dir=None, snapshot_file=None):
 # G.particles.plot('x', 'y', figsize=(5,5))
 
 
-# In[19]:
+# In[ ]:
 
 
 DO_TIMING = False
@@ -496,7 +498,7 @@ if DO_TIMING:
 
 # # Get live values, run Impact-T, make dashboard
 
-# In[24]:
+# In[ ]:
 
 
 # Patch this into the function below for the dashboard creation
@@ -521,7 +523,7 @@ def my_merit(impact_object, itime):
     return merit0
 
 
-# In[25]:
+# In[ ]:
 
 
 def run1():
@@ -563,7 +565,7 @@ def run1():
     
 
 
-# In[26]:
+# In[ ]:
 
 
 # %%time
@@ -599,7 +601,7 @@ def run1():
 
 # # Show the plot 
 
-# In[27]:
+# In[ ]:
 
 
 # from IPython.display import Image

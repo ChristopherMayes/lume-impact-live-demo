@@ -3,18 +3,18 @@ name: lume-live-dev
 channels:
   - conda-forge
 dependencies:
-  - python=3.8
+  - python=3.9
   - ipykernel
   - jupyterlab
   - pandas
   - pyepics
   - scikit-image
   - toml
-#  - lume-impact
+  - lume-impact
   - distgen
   - pip
   - pip:
-    - git+https://github.com/christophermayes/lume-impact
+#    - git+https://github.com/christophermayes/lume-impact
     - git+https://github.com/slaclab/lcls-live
 
   
