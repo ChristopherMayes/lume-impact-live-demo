@@ -1,5 +1,5 @@
 Variable,bmad_name,device_pv_name,pv_unit,impact_name,impact_factor,impact_offset,impact_description,impact_unit
-Gun Voltage,RFGUNB,SOLN:GUNB:212:BACT,xxx,RFGUNB:rf_field_scale,0,1.84E+07,Value for 700 kV ,V/m
+Gun Voltage,RFGUNB,SOLN:GUNB:212:BACT,xxx,RFGUNB:rf_field_scale,0,17646328.784236345,Value for 670 kV ,V/m
 Gun phase,RFGUNB,SOLN:GUNB:212:BACT,xxx,RFGUNB:autophase_deg,0,0.00E+00,,deg
 Solenoid 1,SOL1B,SOLN:GUNB:212:BACT,kG*m,SOL1B:solenoid_field_scale,1.159555454,0,peak field,T
 Solenoid 2,SOL2B,SOLN:GUNB:823:BACT,kG*m,SOL2B:solenoid_field_scale,1.159555454,0,peak field,T
