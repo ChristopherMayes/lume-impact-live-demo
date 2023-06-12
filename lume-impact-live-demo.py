@@ -66,12 +66,19 @@ get_ipython().run_line_magic('config', "InlineBackend.figure_format = 'retina'")
 
 
 DEBUG=False
-USE_VCC = True
-LIVE = True
+USE_VCC = False
+LIVE = False
 SNAPSHOT = 'examples/sc_inj-snapshot-2022-11-12T12:38:08-08:00.h5'
 MIN_CHARGE_pC = 10
+code_directory = '/sdf/group/ard/thakur12/lume-impact-live-demo/'
 
 MODEL = 'sc_inj'
+
+import os
+os.chdir(code_directory)
+print('Code Directory Set to - ', code_directory)
+os.environ["SCRATCH"] = '/scratch/t/thakur12'
+os.environ["LCLS_LATTICE"] = '/sdf/group/ard/thakur12/lcls-lattice'
 
 config = toml.load("configs/sdf_sc_inj.toml")
 
