@@ -1,0 +1,21 @@
+# run: conda env create --file environment-dev.yml
+name: lume-live-dev
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - ipykernel
+  - jupyterlab
+  - pandas
+  - pyepics
+  - scikit-image
+  - toml
+  - lume-impact
+  - distgen=0.6.11
+  - pip
+  - gfortran
+  - cmake
+  - pip:
+#    - git+https://github.com/christophermayes/lume-impact
+    - git+https://github.com/slaclab/lcls-live
+

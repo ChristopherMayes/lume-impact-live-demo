@@ -3,21 +3,22 @@
 
 # # Live cu-inj-live-impact 
 
-# In[ ]:
+# In[46]:
 
 
 # Setup directories, and convert dashboard notebook to a script for importing
 #!./setup.bash
+print("Running LUME IMPACT SERVICE.....")
 
 
-# In[ ]:
+# In[47]:
 
 
 get_ipython().run_line_magic('load_ext', 'autoreload')
 get_ipython().run_line_magic('autoreload', '2')
 
 
-# In[ ]:
+# In[48]:
 
 
 from impact import evaluate_impact_with_distgen, run_impact_with_distgen
@@ -35,7 +36,7 @@ import matplotlib as mpl
 from pmd_beamphysics.units import e_charge
 
 
-# In[ ]:
+# In[49]:
 
 
 import pandas as pd
@@ -49,6 +50,7 @@ import sys
 import os
 import toml
 from time import sleep, time
+import datetime
 
 
 import matplotlib.pyplot as plt
@@ -65,29 +67,66 @@ get_ipython().run_line_magic('config', "InlineBackend.figure_format = 'retina'")
 # In[ ]:
 
 
-DEBUG=False
-USE_VCC = True
-LIVE = True
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--debug", help = "Debug Mode", default = False)
+parser.add_argument("-v", "--use_vcc", help = "Use VCC - True When VCC is Active", default = True)
+parser.add_argument("-l", "--live", help = "Live Mode -  True When BEAM is Active", default = True)
+parser.add_argument("-m", "--model", help = "Mention the Injector Model", default = "sc_inj")
+parser.add_argument("-t", "--host", help = "Mention the host", default = "singularity")
+parser.add_argument("-p", "--num_procs", help = "Mention the Num Procs", default = 64)
+
+
+# In[ ]:
+
+
+def convertStringToBoolean(argument):
+    if argument == 'True' or argument == 'true' or argument == True:
+        return True
+    else:
+        return False
+
+
+# In[52]:
+
+
+args = vars(parser.parse_args())
+
+DEBUG = convertStringToBoolean(args['debug'])
+USE_VCC = convertStringToBoolean(args['use_vcc'])
+LIVE = convertStringToBoolean(args['live'])
+MODEL = args['model']
+HOST = args['host']
+NUM_PROCS_ARGS = int(args['num_procs'])
+
 SNAPSHOT = 'examples/sc_inj-snapshot-2022-11-12T12:38:08-08:00.h5'
 MIN_CHARGE_pC = 10
-
-MODEL = 'sc_inj'
-
-config = toml.load("configs/sdf_sc_inj.toml")
+config = toml.load(f"configs/{HOST}_{MODEL}.toml")
+PREFIX = f'lume-impact-live-demo-{HOST}-{MODEL}'
 
 
 # In[ ]:
 
 
-PREFIX = f'lume-impact-live-demo-{MODEL}'
+def convertToDatedFormat(destionation_folder):
+    curr_date = datetime.date.today()
+    year,month,day = curr_date.strftime('%Y'),curr_date.strftime('%m'),curr_date.strftime('%d')
+    destionation_folder_dated = destionation_folder + "/" + year + "/" + month + "/" + day
+
+    if not os.path.exists(destionation_folder_dated):
+        os.makedirs(destionation_folder_dated)
+    
+    return destionation_folder_dated
 
 
-# # Logging
+# ## Logging
 
-# In[ ]:
+# In[54]:
 
 
 import logging
+from logging.handlers import RotatingFileHandler
 
 # Gets or creates a logger
 logger = logging.getLogger(PREFIX)  
@@ -95,9 +134,10 @@ logger = logging.getLogger(PREFIX)
 # set log level
 logger.setLevel(logging.INFO)
 
+LOG_OUTPUT_DIR = config.get("log_output_dir")
 # define file handler and set formatter
-file_handler = logging.FileHandler(f'{PREFIX}.log')
-#formatter    = logging.Formatter('%(asctime)s : %(levelname)s : %(name)s : %(message)s')
+file_handler = RotatingFileHandler(f'{LOG_OUTPUT_DIR}/{PREFIX}.log', mode='a', encoding=None, maxBytes=50*1024*1024, 
+                                 backupCount=2, delay=0)
 formatter    = logging.Formatter(fmt="%(asctime)s :  %(name)s : %(message)s ", datefmt="%Y-%m-%dT%H:%M:%S%z")
 
 # Add print to stdout
@@ -109,9 +149,24 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 
+# In[ ]:
+
+
+#Arguments -
+
+logger.info('Start of Script Marker - Script Running with Arguments - ')
+logger.info(f'Debug - {DEBUG}')
+logger.info(f'USE_VCC - {USE_VCC}')
+logger.info(f'LIVE - {LIVE}')
+logger.info(f'MODEL - {MODEL}')
+logger.info(f'HOST - {HOST}')
+logger.info(f'NUM_PROCS_ARGS - {NUM_PROCS_ARGS}')
+logger.info(f'Config TOML Loaded - {config}')
+
+
 # ## Utils
 
-# In[ ]:
+# In[55]:
 
 
 # Saving and loading
@@ -136,8 +191,6 @@ def load_pvdata(filename):
             pvdata[k] = v
             
     return pvdata, isotime
-# save_pvdata('test.h5', PVDATA, isotime()) 
-# load_pvdata('test.h5')
 
 
 # # Configuration
@@ -146,7 +199,7 @@ def load_pvdata(filename):
 # 
 # See README for required toml definition.
 
-# In[ ]:
+# In[56]:
 
 
 HOST = config.get('host') # mcc-simul or 'sdf'
@@ -166,13 +219,8 @@ def get_path(key):
 # Output dirs
 
 SUMMARY_OUTPUT_DIR = get_path('summary_output_dir')
-
-
-
 ARCHIVE_DIR = get_path('archive_dir')
-
 SNAPSHOT_DIR = get_path('snapshot_dir')
-
 
 # Dummy file for distgen
 DISTGEN_LASER_FILE = config.get('distgen_laser_file')
@@ -186,22 +234,24 @@ if not NUM_PROCS:
 else:
     NUM_PROCS = int(NUM_PROCS)
 
+if NUM_PROCS_ARGS != NUM_PROCS:
+    NUM_PROCS = NUM_PROCS_ARGS
 
 # if using sdf:
 if HOST == 'sdf':    
-    # check that environment variables are configured for execution
+    #check that environment variables are configured for execution
     IMPACT_COMMAND = config.get("impact_command")
     if not IMPACT_COMMAND:
-        raise ValueError("impact_command not defined in toml.")
+       raise ValueError("impact_command not defined in toml.")
 
 
     IMPACT_COMMAND_MPI = config.get("impact_command_mpi")
     if not IMPACT_COMMAND_MPI:
-        raise ValueError("impact_command_mpi not defined in toml.")
+       raise ValueError("impact_command_mpi not defined in toml.")
 
 
 
-# In[ ]:
+# In[57]:
 
 
 CONFIG0 = {}
@@ -214,7 +264,6 @@ SETTINGS0 = {
  'header:Ny': 32,
  'header:Nz': 32,
  'numprocs': NUM_PROCS,
-# 'mpi_run': MPI_RUN_CMD
    }
 
 SETTINGS0['numprocs'] = NUM_PROCS
@@ -225,13 +274,10 @@ if DEBUG:
     SETTINGS0['distgen:n_particle'] = 1000
     SETTINGS0['total_charge'] = 0
     
-    
-
-    
 # Host config    
-if HOST in ('sdf', ):
+if HOST in ('sdf'):
     
-     # SDF setup 
+    #SDF setup 
     SETTINGS0['command'] =  IMPACT_COMMAND
     SETTINGS0['command_mpi'] =  IMPACT_COMMAND_MPI
     SETTINGS0['mpi_run'] = config.get("mpi_run_cmd")
@@ -246,20 +292,16 @@ else:
 
 # # Select: LCLS or FACET
 
-# In[ ]:
+# In[59]:
 
 
 # PV -> Sim conversion table
 CSV =  f'pv_mapping/{MODEL}_impact.csv'  
 
-
 CONFIG0['impact_config']      =  get_path('config_file')
 CONFIG0['distgen_input_file'] =  get_path('distgen_input_file')
 
 PLOT_OUTPUT_DIR = get_path('plot_output_dir')
-
-
-
 
 if MODEL == 'cu_inj':
     VCC_DEVICE = 'CAMR:IN20:186' # LCLS   
@@ -310,15 +352,16 @@ else:
     raise
 
 
-# In[ ]:
+# In[60]:
 
 
 CONFIG0, SETTINGS0
+logger.info(f'FINAL SETTINGS - {SETTINGS0}')
 
 
 # # Set up monitors
 
-# In[ ]:
+# In[61]:
 
 
 # Gun: 700 kV
@@ -326,20 +369,22 @@ CONFIG0, SETTINGS0
 # Buncher: +60 deg relative to on-crest
 
 
-# In[ ]:
+# In[62]:
 
 
 DF = pd.read_csv(CSV)#.dropna()
 
 PVLIST = list(DF['device_pv_name'].dropna()) 
+
 if USE_VCC:
     PVLIST = PVLIST + list(VCC_DEVICE_PV[VCC_DEVICE].values())
-
+else:
+    logger.info('USE VCC set to False. VCC is not working right now.')
 #DF.set_index('device_pv_name', inplace=True)
 DF
 
 
-# In[ ]:
+# In[63]:
 
 
 if LIVE:
@@ -348,7 +393,7 @@ if LIVE:
     sleep(5)
 
 
-# In[ ]:
+# In[64]:
 
 
 def get_snapshot(snapshot_file=None):
@@ -357,11 +402,17 @@ def get_snapshot(snapshot_file=None):
         itime = isotime()
         pvdata =  {k:MONITOR[k].get() for k in MONITOR}
     else:
-        print(snapshot_file)
         pvdata, itime = load_pvdata(snapshot_file)
         itime = itime.decode('utf-8')
     
     logger.info(f'Acquired settings from EPICS at: {itime}')
+    
+    epics_working_check = [val for val in pvdata.values() if val is None]
+    
+    if len(epics_working_check) == len(list(pvdata.keys())):
+        raise Exception(f'EPICS returned None for all keys. Please check if you are able to connect to Accelerator')
+
+    VCC_Key = None
     
     for k, v in pvdata.items():
         
@@ -369,34 +420,37 @@ def get_snapshot(snapshot_file=None):
             raise ValueError(f'EPICS get for {k} returned None')
         
         if ':IMAGE:ARRAYDATA' in k.upper():
+            VCC_Key = k
             found = False
             logger.info(f'Waiting for good {k}')
-            while not found:
+            counter = 0
+            USE_VCC_LOCAL = True
+            while not found and counter < 5:
+                counter += 1
                 if v is None:
                     continue
                 if v.std() > 10:
                     found = True
                 else:
                     v = MONITOR[k].get()
-            if v.ptp() < 128:
+            if counter == 5:
+                logger.info(f'VCC is not working. Defaulting to None.')
+                USE_VCC_LOCAL = False
+            elif v.ptp() < 128:
                 v = v.astype(np.int8) # Downcast preemptively 
-                                
             pvdata[k] = v
-    return pvdata, itime
-# PVDATA, ITIME = get_snapshot(SNAPSHOT)
-# PVDATA, ITIME
+        else:
+            USE_VCC_LOCAL = False
 
+    if not USE_VCC_LOCAL and VCC_Key in pvdata:
+        del pvdata[VCC_Key]
 
-# In[ ]:
-
-
-#while True:
-#    get_pvdata()
+    return pvdata, itime, USE_VCC_LOCAL
 
 
 # # EPICS -> Simulation settings
 
-# In[ ]:
+# In[66]:
 
 
 def get_settings(csv, base_settings={}, snapshot_dir=None, snapshot_file=None):
@@ -409,7 +463,7 @@ def get_settings(csv, base_settings={}, snapshot_dir=None, snapshot_file=None):
     
     pv_names = list(df['device_pv_name'])
 
-    pvdata, itime = get_snapshot(snapshot_file)
+    pvdata, itime, USE_VCC_LOCAL = get_snapshot(snapshot_file)
     
     df['pv_value'] = [pvdata[k] for k in pv_names]
     
@@ -428,7 +482,8 @@ def get_settings(csv, base_settings={}, snapshot_dir=None, snapshot_file=None):
         settings['total_charge'] = 1 # Will be updated with particles
 
     # VCC image
-    if USE_VCC:
+    if USE_VCC_LOCAL:
+        logger.info('Getting VCC Live Distgen')
         dfile, img, cutimg = get_live_distgen_xy_dist(filename=DISTGEN_LASER_FILE, vcc_device=VCC_DEVICE, pvdata=pvdata)  
         settings['distgen:xy_dist:file'] = dfile
     else:
@@ -447,32 +502,8 @@ def get_settings(csv, base_settings={}, snapshot_dir=None, snapshot_file=None):
         
     return settings, df, img, cutimg, itime
 
-#res = get_settings(CSV, SETTINGS0, snapshot_dir='.')
-# res[1]
 
-
-# In[ ]:
-
-
-#get_settings(CSV, SETTINGS0, snapshot_dir='.', snapshot_file=SNAPSHOT)
-
-
-# In[ ]:
-
-
-# gfile = CONFIG0['distgen_input_file']
-# from distgen import Generator
-# #fout = res[0]
-# G = Generator(gfile)
-# #G['xy_dist:file'] =  DISTGEN_LASER_FILE #'distgen_laser.txt'
-# if USE_VCC:
-#     G['xy_dist:file'] = res[0]['distgen:xy_dist:file'] 
-# G['n_particle'] = 100000
-# G.run()
-# G.particles.plot('x', 'y', figsize=(5,5))
-
-
-# In[ ]:
+# In[69]:
 
 
 DO_TIMING = False
@@ -498,13 +529,18 @@ if DO_TIMING:
 
 # # Get live values, run Impact-T, make dashboard
 
-# In[ ]:
+# In[70]:
 
 
 # Patch this into the function below for the dashboard creation
 def my_merit(impact_object, itime):
     # Collect standard output statistics
     merit0 = default_impact_merit(impact_object)
+    
+    PLOT_OUTPUT_DIR_DATED = convertToDatedFormat(PLOT_OUTPUT_DIR)
+    #Overriding at runtime to save in dated folders
+    DASHBOARD_KWARGS["outpath"] = PLOT_OUTPUT_DIR_DATED
+    
     # Make the dashboard from the evaluated object
     plot_file = make_dashboard(impact_object, itime=itime, **DASHBOARD_KWARGS)
     #print('Dashboard written:', plot_file)
@@ -523,16 +559,20 @@ def my_merit(impact_object, itime):
     return merit0
 
 
-# In[ ]:
+# In[71]:
 
 
 def run1():
     dat = {}
-    
+
+    SNAPSHOT_DIR_DATED = convertToDatedFormat(SNAPSHOT_DIR)
+    ARCHIVE_DIR_DATED = convertToDatedFormat(ARCHIVE_DIR)
+    SUMMARY_OUTPUT_DIR_DATED = convertToDatedFormat(SUMMARY_OUTPUT_DIR)
+        
     # Acquire settings
     mysettings, df, img, cutimg, itime = get_settings(CSV,
                                                            SETTINGS0,
-                                                           snapshot_dir=SNAPSHOT_DIR,
+                                                           snapshot_dir=SNAPSHOT_DIR_DATED,
                                                           snapshot_file=SNAPSHOT)        
     dat['isotime'] = itime
     
@@ -552,12 +592,12 @@ def run1():
     
     outputs = evaluate_impact_with_distgen(mysettings,
                                        merit_f=lambda x: my_merit(x, itime),
-                                       archive_path=ARCHIVE_DIR,
+                                       archive_path=ARCHIVE_DIR_DATED,
                                        **CONFIG0, verbose=True )
     
     dat['outputs'] =  outputs   
     logger.info(f'...finished in {(time()-t0)/60:.1f} min')
-    fname = fname=f'{SUMMARY_OUTPUT_DIR}/{PREFIX}-{itime}.json'
+    fname = fname=f'{SUMMARY_OUTPUT_DIR_DATED}/{PREFIX}-{itime}.json'
 
     json.dump(dat, open(fname, 'w'), cls=NpEncoder)
     logger.info(f'Summary output written: {fname}')
@@ -565,60 +605,29 @@ def run1():
     
 
 
-# In[ ]:
-
-
-# %%time
-# result = run1()
-
-
-# In[ ]:
-
-
-#result.keys()
-
-
-# In[ ]:
-
-
-# Basic config
-#result['config']
-
-
-# In[ ]:
-
-
-# Simulation inputs
-#result['inputs']
-
-
-# In[ ]:
-
-
-# Simulation outputs
-# result['outputs']
-
-
-# # Show the plot 
-
-# In[ ]:
-
-
-# from IPython.display import Image
-# Image(filename=result['outputs']['plot_file'])
-
-
 # # loop it
 # 
 
-# In[ ]:
+# In[78]:
 
 
 if __name__ == '__main__':
     while True:
         try:
-            run1()
-        except:
-            sleep(10)
-            logger.info('Something BAD happened. Sleeping for 10 s ...')
+            result = run1()
+        except Exception as e:
+            logger.info(e)
+            if (e.__class__.__name__ == 'Exception'):
+                logger.info('Stopping the Program')
+                break
+            else:
+                logger.info('Something BAD happened. Sleeping for 10 s ...')      
+                sleep(10)
+            
+
+
+# In[ ]:
+
+
+
 
