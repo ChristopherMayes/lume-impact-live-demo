@@ -5,8 +5,8 @@ Demonstration of LUME-Impact running a live model fetching data from the LCLS EP
 
 # Setup
 
-Make the `lume-live` environment:
-`conda env create --file environment.yml`
+Make the `lume-live-dev` environment:
+`conda env create --file lume-live-dev.yml`
 
 Convert notebooks to `.py` files:
 ```bash
@@ -24,9 +24,30 @@ Test with: `caget KLYS:LI22:11:KPHR`
 
 # Run
 
-For example, LCLS on SDF:
+For example, LCLS on SDF with default parameters:
 ```
-python lume-impact-live-demo.py
+ipython lume-impact-live-demo.py
+```
+
+LCLS on S3DF with default parameters:
+```
+ipython lume-impact-live-demo.py -- -t "s3df"
+```
+
+All Parameters to run lume-impact-live-demo.py file -
+```
+-d Debug=True/False
+-l Live=True/False
+-v USE_VCC=True/False
+-m Please pass the model name here (sc_inj/facet/lcls)
+-h Please pass the host name here (sdf/singularity)
+
+Defaults -
+debug=False
+use_vcc=True
+live=True
+model=sc_inj
+host=sdf
 ```
 
 ## TOML properties file
