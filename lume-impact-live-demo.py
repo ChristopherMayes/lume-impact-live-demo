@@ -62,6 +62,36 @@ mpl.use('Agg')
 get_ipython().run_line_magic('config', "InlineBackend.figure_format = 'retina'")
 
 
+# In[ ]:
+
+
+#Sanity Checks for OS Environments
+if 'LCLS_LATTICE' in os.environ:
+    print('LCLS Lattice is set to - ', os.environ['LCLS_LATTICE'])
+else:
+    print('LCLS_LATTICE Location is missing')
+    exit(1)
+if 'LUME_OUTPUT_FOLDERS' in os.environ:
+    print('LUME_OUTPUT_FOLDERS is set to - ', os.environ['LUME_OUTPUT_FOLDERS'])
+else:
+    print('LUME_OUTPUT_FOLDERS Location is missing')
+    exit(1)
+if 'SCRATCH' in os.environ:
+    print('SCRATCH is set to - ', os.environ['SCRATCH'])
+else:
+    print('SCRATCH Location is missing')
+    exit(1)
+
+def replaceEnvironmentFiles(file_location):
+    if 'LUME_OUTPUT_FOLDERS' in file_location:
+        return file_location.replace('$LUME_OUTPUT_FOLDERS', os.environ['LUME_OUTPUT_FOLDERS'])
+    if 'LCLS_LATTICE' in file_location:
+        return file_location.replace('$LCLS_LATTICE', os.environ['LCLS_LATTICE'])
+    if 'SCRATCH' in file_location:
+        return file_location.replace('$SCRATCH', os.environ['SCRATCH'])
+    return file_location
+
+
 # # Top level config
 
 # In[ ]:
@@ -135,6 +165,7 @@ logger = logging.getLogger(PREFIX)
 logger.setLevel(logging.INFO)
 
 LOG_OUTPUT_DIR = config.get("log_output_dir")
+LOG_OUTPUT_DIR = replaceEnvironmentFiles(LOG_OUTPUT_DIR)
 # define file handler and set formatter
 file_handler = RotatingFileHandler(f'{LOG_OUTPUT_DIR}/{PREFIX}.log', mode='a', encoding=None, maxBytes=50*1024*1024, 
                                  backupCount=2, delay=0)
@@ -218,9 +249,9 @@ def get_path(key):
 
 # Output dirs
 
-SUMMARY_OUTPUT_DIR = get_path('summary_output_dir')
-ARCHIVE_DIR = get_path('archive_dir')
-SNAPSHOT_DIR = get_path('snapshot_dir')
+SUMMARY_OUTPUT_DIR = replaceEnvironmentFiles(get_path('summary_output_dir'))
+ARCHIVE_DIR = replaceEnvironmentFiles(get_path('archive_dir'))
+SNAPSHOT_DIR = replaceEnvironmentFiles(get_path('snapshot_dir'))
 
 # Dummy file for distgen
 DISTGEN_LASER_FILE = config.get('distgen_laser_file')
@@ -267,7 +298,7 @@ SETTINGS0 = {
    }
 
 SETTINGS0['numprocs'] = NUM_PROCS
-CONFIG0["workdir"] = get_path('workdir')
+CONFIG0["workdir"] = replaceEnvironmentFiles(get_path('workdir'))
 
 if DEBUG:
     logger.info('DEBUG MODE: Running without space charge for speed. ')
@@ -298,10 +329,13 @@ else:
 # PV -> Sim conversion table
 CSV =  f'pv_mapping/{MODEL}_impact.csv'  
 
-CONFIG0['impact_config']      =  get_path('config_file')
-CONFIG0['distgen_input_file'] =  get_path('distgen_input_file')
+CONFIG0['impact_config']      =  replaceEnvironmentFiles(get_path('config_file'))
+CONFIG0['distgen_input_file'] =  replaceEnvironmentFiles(get_path('distgen_input_file'))
 
-PLOT_OUTPUT_DIR = get_path('plot_output_dir')
+print('Impact Config Loaded - ', CONFIG0['impact_config'] )
+print('Distgen Input File Loaded - ', CONFIG0['distgen_input_file'] )
+
+PLOT_OUTPUT_DIR = replaceEnvironmentFiles(get_path('plot_output_dir'))
 
 if MODEL == 'cu_inj':
     VCC_DEVICE = 'CAMR:IN20:186' # LCLS   
@@ -615,6 +649,7 @@ if __name__ == '__main__':
     while True:
         try:
             result = run1()
+            sleep(10)
         except Exception as e:
             logger.info(e)
             if (e.__class__.__name__ == 'Exception'):
