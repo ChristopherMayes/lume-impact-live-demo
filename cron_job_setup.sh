@@ -33,8 +33,10 @@ conda activate lume-live-dev
 
 #These are S3DF Variables
 export LCLS_LATTICE=/sdf/group/ad/beamphysics/lcls-lattice
-export SCRATCH=/sdf/group/ad/beamphysics/lume-impact-live-demo/SCRATCH
+export SCRATCH=/sdf/group/ad/beamphysics/lume-impact-live-demo/SCRATCH2
+export LUME_IMPACT_CODEBASE_LOCATION=/sdf/group/ad/beamphysics/lume-impact-live-demo
 
-cd /sdf/group/ad/beamphysics/lume-impact-live-demo/
+cd $LUME_IMPACT_CODEBASE_LOCATION
+export LUME_OUTPUT_FOLDERS=/sdf/group/ad/beamphysics/lume-impact-live-demo/output
 
 ipython /sdf/group/ad/beamphysics/lume-impact-live-demo/lume-impact-live-demo.py -- -t "s3df"
