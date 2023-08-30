@@ -54,7 +54,7 @@ host=sdf
 
 # Running Lume-Impact-Live-Demo on S3DF
 
-Please remember to follow all the above steps (including connecting to PVs)
+Please remember to follow all the above steps (including connecting to PVs). Please wait roughly 5-10 mins for job to complete one simulation. 
 ```
 export LCLS_LATTICE=/sdf/group/ad/beamphysics/lcls-lattice
 export SCRATCH=/sdf/group/ad/beamphysics/lume-impact-live-demo/SCRATCH3 (Try not using the lscratch or scratch on S3DF. Somehow, it didn't work for me.)
@@ -69,10 +69,11 @@ ipython /sdf/group/ad/beamphysics/lume-impact-live-demo/lume-impact-live-demo.py
 
 Easiest way to run lume-impact-live-demo on S3DF as a Service is through Cron Jobs.
 Please remember to check all the export variables in `cron_job_setup.sh`
+Saving below config should automatically trigger the job in background. Use logs to monitor the job. Otherwise, You can see the pid saved in ~/tmp/myprogram.pid which signifies the last pid that executed this program.
 ```
 crontab -e
 
-#Opens a file. Please enter below details and save it. This should automatically trigger the job in background. Use logs to monitor the job.
+#Opens a file. Please enter below details and save it. 
 SHELL=/bin/bash
 BASH_ENV=~/.bashrc
 * * * * * source /sdf/group/ad/beamphysics/lume-impact-live-demo/cron_job_setup.sh
